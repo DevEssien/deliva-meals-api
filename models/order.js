@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../utils/database');
 
-const FoodCategory = sequelize.define('Category', {
+const Order = sequelize.define('Order', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -18,4 +18,4 @@ const FoodCategory = sequelize.define('Category', {
     }
 });
 
-module.exports = FoodCategory;
+module.exports = Order;

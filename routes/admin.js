@@ -6,4 +6,6 @@ const router = express.Router();
 
 router.get('/', adminHandler.getAdmin);
 
+router.post('/add-category', adminHandler.createFoodCategory);
+
 module.exports = router;

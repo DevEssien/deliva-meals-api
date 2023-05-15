@@ -7,7 +7,8 @@ const FoodCategory = require('./models/food-category');
 const SubFood = require('./models/sub-food');
 const adminRoute = require('./routes/admin');
 const { protect } = require('./modules/auth')
-const { createAdmin, loginAdmin } = require('./handlers/auth')
+const { createAdmin, loginAdmin } = require('./handlers/auth');
+const { subscribe } = require('./routes/admin');
 
 const app = express();
 
@@ -31,11 +32,17 @@ app.use((error, req, res, next) => {
     })
 })
 
+FoodCategory.hasMany(SubFood);
 
+SubFood.belongsTo(FoodCategory, {
+    constraints: true,
+    onDelete: 'CASCADE'
+});
 
 const createTables = async () => {
     await Admin.sync();
-    await FoodCategory.sync()
+    await FoodCategory.sync();
+    await SubFood.sync();
 }
 
 // createTables()

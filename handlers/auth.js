@@ -56,10 +56,12 @@ exports.loginAdmin = async (req, res, next) => {
                 error.message = 'Incorrect Password!';
                 throw error; 
             }
+            const token = createJWT(admin);
             return res.status(200).json({
                 status: 'Successful',
                 message: 'Admin Logged in',
-                admin
+                admin,
+                token
             });
         } catch(error) {
             console.log(error);
