@@ -1,20 +1,21 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../utils/database');
 
-const Admin = sequelize.define('Admin', {
+const FoodCategory = sequelize.define('Category', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
         autoIncrement: true
     },
-    username: {
+    price: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    password: {
-        type: DataTypes.STRING
+    quantity: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
 });
 
-module.exports = Admin;
+module.exports = FoodCategory;

@@ -1,7 +1,10 @@
+require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 
+const Admin = require('./models/admin');
+const FoodCategory = require('./models/food-category');
+const SubFood = require('./models/sub-food');
 const adminRoute = require('./routes/admin');
 const { protect } = require('./modules/auth')
 const { createAdmin, loginAdmin } = require('./handlers/auth')
@@ -28,7 +31,14 @@ app.use((error, req, res, next) => {
     })
 })
 
-mongoose.connect('mongodb://127.0.0.1:27017/mealsDB');
+
+
+const createTables = async () => {
+    await Admin.sync();
+    await FoodCategory.sync()
+}
+
+// createTables()
 
 app.listen(8080, () => {
     console.log('server spinning at port 8080');
