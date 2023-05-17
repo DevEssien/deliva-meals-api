@@ -7,7 +7,7 @@ const FoodCategory = require('./models/food-category');
 const SubFood = require('./models/sub-food');
 const adminRoute = require('./routes/admin');
 const { protect } = require('./modules/auth')
-const { createAdmin, loginAdmin } = require('./handlers/auth');
+const { createAdmin, loginAdmin } = require('./handlers/admin/auth');
 const { subscribe } = require('./routes/admin');
 
 const app = express();

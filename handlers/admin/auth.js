@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 
-const  { createJWT } = require('../modules/auth') 
-const Admin = require('../models/admin');
+const  { createJWT } = require('../../modules/auth') 
+const Admin = require('../../models/admin');
 
 exports.createAdmin = async (req, res, next) => {
     try {

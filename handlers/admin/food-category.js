@@ -1,5 +1,5 @@
-const Admin = require('../models/admin');
-const FoodCategory = require('../models/food-category'); 
+const Admin = require('../../models/admin');
+const FoodCategory = require('../../models/food-category'); 
 
 exports.getAdmin = (req, res, next) => {
     return res.json({
