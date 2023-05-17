@@ -8,4 +8,8 @@ router.get('/', adminHandler.getAdmin);
 
 router.post('/add-category', adminHandler.createFoodCategory);
 
+router.put('/update-category/:id', adminHandler.updateFoodCategory);
+
+router.delete('/delete-category/:id', adminHandler.deleteFoodCategory)
+
 module.exports = router;
