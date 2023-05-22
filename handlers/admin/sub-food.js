@@ -9,12 +9,20 @@ exports.getSubFood = (req, res, next) => {
 
 exports.createSubFood= async (req, res, next) => {
     try {
+        let newCategory;
         const category = await FoodCategory.findOne({where: { food_name: req.body.category_name}})
         if (!category) {
-            const error = new Error('Not found!');
-            error.statusCode = 404;
-            error.message = 'Food Category do not exist'
-            throw error 
+            newCategory = await FoodCategory.create({
+                food_name: req.body.category_name,
+                food_class: ''
+            });
+            const savedCategory = await newCategory.save();
+            if (!savedCategory) {
+                const error = new Error('Server Side error');
+                error.statusCode = 500;
+                error.message = 'Cannot save new food Category to db'
+                throw error 
+            }
         }
         try {
             const subFood = await SubFood.findOne({ where: { food_name: req.body.food_name}});
@@ -43,7 +51,10 @@ exports.createSubFood= async (req, res, next) => {
             return res.status(201).json({
                 status: "Successful",
                 message: "Created a new sub Food",
-                data: newSubFood
+                data: {
+                    newSubFood,
+                    createdCategory: newCategory
+                }
             });
 
         } catch(error) {
