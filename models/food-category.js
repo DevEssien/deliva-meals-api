@@ -16,7 +16,11 @@ const FoodCategory = sequelize.define('Category', {
         type: DataTypes.STRING,
         defaultValue: null
     },
-    image_url: {
+    secure_image_url: {
+        type: DataTypes.STRING,
+        defaultValue: null
+    },
+    image_public_id: {
         type: DataTypes.STRING,
         defaultValue: null
     }

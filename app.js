@@ -1,6 +1,8 @@
 require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
+const path = require('path')
 
 const Admin = require('./models/admin');
 const FoodCategory = require('./models/food-category');
@@ -14,6 +16,9 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true}));
+
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use('/admin/signup', createAdmin);
 app.use('/admin/signin', loginAdmin);
@@ -46,6 +51,7 @@ const createTables = async () => {
 }
 
 // createTables()
+
 
 app.listen(8080, () => {
     console.log('server spinning at port 8080');

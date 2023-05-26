@@ -31,6 +31,14 @@ const SubFood = sequelize.define('SubFood', {
     calory_amount: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    secure_image_url: {
+        type: DataTypes.STRING,
+        defaultValue: null
+    },
+    image_public_id: {
+        type: DataTypes.STRING,
+        defaultValue: null
     }
 });
 

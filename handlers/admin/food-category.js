@@ -1,6 +1,9 @@
 const Admin = require('../../models/admin');
 const FoodCategory = require('../../models/food-category'); 
 
+const cloudinary = require('../../utils/cloudinary')
+
+
 exports.getAdmin = (req, res, next) => {
     return res.json({
         message: 'getting admins'
@@ -31,6 +34,43 @@ exports.createFoodCategory = async (req, res, next) => {
         message: "Created a new Food Category",
         data: newCategory
     });
+}
+
+exports.addFoodCategoryImage = async (req, res, next) => {
+    if (!req.file) {
+        const error = new Error('Invalid Input!');
+        error.statusCode = 422;
+        error.message = 'No image file uploaded'
+        throw error;
+    }  
+    try {
+        const category = await FoodCategory.findOne({ where: { id: req.params.id}});
+        if (!category) {
+            const error = new Error('Not Found!');
+            error.statusCode = 404;
+            error.message = 'Category not found'
+            throw error;
+        }
+        const result = await cloudinary.uploader.upload(req.file.path);
+        category.secure_image_url = result.secure_url
+        category.image_public_id = result.public_id
+        const savedCategory = await category.save();
+        if (!savedCategory) {
+            const error = new Error('Server side error!');
+            error.statusCode = 500;
+            error.message = 'Something went wrong'
+            throw error;
+        }
+        return res.status(201).json({
+            category
+        });
+    } catch(error) {
+        if (!error.statusCode) {
+            error.statusCode = 500;
+        }
+        next(error);
+    }
+
 }
 
 exports.updateFoodCategory = async (req, res, next) => {
