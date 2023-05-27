@@ -11,7 +11,7 @@ const router = express.Router();
  * Main Category
  */
 
-router.get('/category', foodCategoryHandler.getAdmin);
+router.get('/category', foodCategoryHandler.getFoodCategory);
 
 router.post('/category/add-category', foodCategoryHandler.createFoodCategory);
 
@@ -30,6 +30,8 @@ router.get('/sub-food', subFoodHandler.getSubFood);
 router.post('/sub-food/add-sub', subFoodHandler.createSubFood);
 
 router.post('/sub-food/add-image/:id', upload.single('image'), subFoodHandler.addSubFoodImage);
+
+router.patch('/sub-food/delete-image/:publicId', subFoodHandler.deleteSubFoodImage)
 
 // router.put('/sub-food/update-sub/:id', subFoodHandler.updateFoodCategory);
 

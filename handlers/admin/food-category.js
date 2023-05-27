@@ -1,14 +1,16 @@
-const Admin = require('../../models/admin');
 const FoodCategory = require('../../models/food-category'); 
 
 const cloudinary = require('../../utils/cloudinary')
 
 
-exports.getAdmin = (req, res, next) => {
-    return res.json({
-        message: 'getting admins'
+exports.getFoodCategory = async (req, res, next) => {
+    const categories = await FoodCategory.findAll();
+    return res.status(200).json({
+        message: 'getting food category',
+        categories
     });
 }
+
 
 exports.createFoodCategory = async (req, res, next) => {
     const category = await FoodCategory.findOne({ where: { food_name: req.body.food_name}});

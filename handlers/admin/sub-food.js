@@ -1,10 +1,14 @@
+const path = require('path'); 
+const fs = require('fs');
 const FoodCategory = require('../../models/food-category');
 const SubFood = require('../../models/sub-food');
 const cloudinary = require('../../utils/cloudinary');
 
-exports.getSubFood = (req, res, next) => {
+exports.getSubFood = async (req, res, next) => {
+    const subFoods = await SubFood.findAll()
     return res.json({
-        message: 'getting all sub foods'
+        message: 'getting all sub foods',
+        subFoods
     });
 }
 
@@ -145,6 +149,48 @@ exports.addSubFoodImage = async (req, res, next) => {
 
 }
 
+exports.deleteSubFoodImage = async (req, res, next) => {
+    try {
+        const subFood = await SubFood.findOne({ where: { image_public_id: req.params.publicId}});
+        if (!subFood) {
+            const error = new Error('Not Found!');
+            error.statusCode = 404;
+            error.message = 'No subfood found with the public id'
+            throw error;
+        }
+        await cloudinary.uploader.destroy(subFood.image_public_id, async (err, result) => {
+            if (!err) {
+                subFood.secure_image_url = '';
+                subFood.image_public_id = '';
+                const savedSubFood = await subFood.save();
+                if (!savedSubFood) {
+                    const error = new Error('Server side error!');
+                    error.statusCode = 500;
+                    error.message = 'Something went wrong'
+                    throw error;
+                }
+                res.status(200).json({
+                    status: 'Successful',
+                    message: 'Deleted image from cloudinary',
+                    data: {
+                        result: await result,
+                        subFood
+                    }
+                });
+            }
+            const error = new Error('Network error');
+            error.statusCode = 500;
+            error.message = 'Could not delete image from cloudinary due to poor network';
+            throw error;
+        });
+    } catch(error) {
+        if (!error.statusCode) {
+            error.statusCode = 500;
+        }
+        next(error);
+    }
+}
+
 exports.deleteSubFood= async (req, res, next) => {
     try {
         const deletedCategory = await SubFood.destroy({ where: { id: req.params.id}});
@@ -170,3 +216,13 @@ exports.deleteSubFood= async (req, res, next) => {
         next(error);
     }
 }
+
+// const clearImage = async(filePath) => {
+//     const filePath = path.join(__dirname, "..", filePath);
+//     await fs.unlink(filePath, (err) => {
+//         if (!err) {
+//             console.log('deleted the file');
+//         }
+//         console.log('error ', err)
+//     })
+// }
