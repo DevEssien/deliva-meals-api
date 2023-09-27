@@ -100,7 +100,7 @@ exports.updateFoodCategory = async (req, res, next) => {
         if (!category) return next(new AppError('Food Category could not be found', 404));
 
         for (const field in reqObject) {
-            category[field] = reqObject[`${field}`]
+            category[field] = reqObject[`${field}`].toLowerCase()
         }
         const updatedCategory = await category.save();
 
@@ -122,14 +122,29 @@ exports.deleteFoodCategory = async (req, res, next) => {
         if (!category) return next(new AppError('Food Category could not be found', 404));
 
         const deletedCategory = await FoodCategory.destroy({ where: { id: category?.id }});
-        if (!deletedCategory) return next(new AppError('Food Category could not be deleted due to unmatched id', 401))
-        
-        return res.status(201).json({
+        if (!deletedCategory) return next(new AppError('Food Category could not be deleted due to unmatched id', 401));
+
+        if (!category.image_public_id) return res.status(200).json({
             status: "success",
             message: "deleted an existing Food Category",
             data: {
-                items_deleted: deletedCategory
-            }
+                items_deleted: deletedCategory,
+            },
+        }); 
+
+        await cloudinary.uploader.destroy(category.image_public_id, async (error, result) => {
+            if (error) return next(new AppError('Poor network', 400)); 
+
+            return res.status(200).json({
+                status: "success",
+                message: "deleted an existing Food Category and image file from cloudinary",
+                data: {
+                    items_deleted: deletedCategory,
+                    cloudinaryResult: {
+                        result: await result
+                    },
+                },
+            });
         });
     } catch(error) {
         next(error);

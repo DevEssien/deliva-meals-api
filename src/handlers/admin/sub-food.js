@@ -1,15 +1,22 @@
-const path = require('path'); 
-const fs = require('fs');
+const AppError = require('../error/error');
 const FoodCategory = require('../../models/food-category');
 const SubFood = require('../../models/sub-food');
 const cloudinary = require('../../utils/cloudinary');
 
 exports.getSubFood = async (req, res, next) => {
-    const subFoods = await SubFood.findAll()
-    return res.json({
-        message: 'getting all sub foods',
-        subFoods
-    });
+    try {
+        const subFoods = await SubFood.findAll();
+        if (!subFoods) return next(new AppError('No sub food found', 404));
+
+        return res.json({
+            status: 'success',
+            message: 'getting all sub foods',
+            data: { subFoods }
+        });
+        
+    } catch (error) {
+        next(error)
+    }
 }
 
 exports.createSubFood= async (req, res, next) => {
@@ -216,13 +223,3 @@ exports.deleteSubFood= async (req, res, next) => {
         next(error);
     }
 }
-
-// const clearImage = async(filePath) => {
-//     const filePath = path.join(__dirname, "..", filePath);
-//     await fs.unlink(filePath, (err) => {
-//         if (!err) {
-//             console.log('deleted the file');
-//         }
-//         console.log('error ', err)
-//     })
-// }
