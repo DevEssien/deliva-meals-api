@@ -1,14 +1,23 @@
 const FoodCategory = require('../../models/food-category'); 
+const AppError = require('../error/error');
 
 const cloudinary = require('../../utils/cloudinary')
 
 
 exports.getFoodCategory = async (req, res, next) => {
-    const categories = await FoodCategory.findAll();
-    return res.status(200).json({
-        message: 'getting food category',
-        categories
-    });
+    try {
+        const categories = await FoodCategory.findAll();
+        if (!categories) return next(new AppError('No Category exist', 404));
+        
+        return res.status(200).json({
+            status: 'success',
+            message: 'getting food category',
+            data: { categories }
+        });
+        
+    } catch (error) {
+        next(error)
+    }
 }
 
 

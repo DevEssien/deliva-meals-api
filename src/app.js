@@ -1,4 +1,3 @@
-require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
@@ -20,21 +19,22 @@ app.use(bodyParser.urlencoded({ extended: true}));
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-app.use('/admin/signup', createAdmin);
-app.use('/admin/signin', loginAdmin);
+app.post('/admin/signup', createAdmin);
+app.post('/admin/signin', loginAdmin);
 
 app.use('/api', protect, adminRoute);
 
 app.use((error, req, res, next) => {
-    console.log('error ', error);
     const code = error.statusCode || 500;
+    const status = error.status || 'error'
     const message = error.message || 'Server side error';
     const data = error.data || null;
-    return res.status(code).json({
-        message,
+    return res.status(200).json({
+        status,
         code,
+        message,
         data
-    })
+    });
 })
 
 FoodCategory.hasMany(SubFood);
@@ -53,6 +53,4 @@ const createTables = async () => {
 // createTables()
 
 
-app.listen(8080, () => {
-    console.log('server spinning at port 8080');
-});
+module.exports = app;
