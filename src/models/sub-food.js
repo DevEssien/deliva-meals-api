@@ -13,7 +13,7 @@ const SubFood = sequelize.define('SubFood', {
         allowNull: false
     },
     rating: {
-        type: DataTypes.STRING,
+        type: DataTypes.FLOAT,
         allowNull: true
     },
     description: {
@@ -21,15 +21,15 @@ const SubFood = sequelize.define('SubFood', {
         allowNull: false
     },
     price: {
-        type: DataTypes.STRING,
+        type: DataTypes.FLOAT,
         allowNull: false
     },
-    preparation_time: {
+    preparation_duration: {
         type: DataTypes.STRING,
         allowNull: false
     },
     calory_amount: {
-        type: DataTypes.STRING,
+        type: DataTypes.FLOAT,
         allowNull: true
     },
     secure_image_url: {

@@ -8,7 +8,7 @@ exports.getSubFood = async (req, res, next) => {
         const subFoods = await SubFood.findAll();
         if (!subFoods) return next(new AppError('No sub food found', 404));
 
-        return res.json({
+        return res.status(200).json({
             status: 'success',
             message: 'getting all sub foods',
             data: { subFoods }
@@ -22,89 +22,64 @@ exports.getSubFood = async (req, res, next) => {
 exports.createSubFood= async (req, res, next) => {
     try {
         let newCategory;
-        const category = await FoodCategory.findOne({where: { food_name: req.body.category_name}})
+        const category = await FoodCategory.findOne({where: { food_name: req.body.category_name.toLowerCase()}})
         if (!category) {
             newCategory = await FoodCategory.create({
-                food_name: req.body.category_name,
+                food_name: req.body.category_name.toLowerCase(),
                 food_class: ''
             });
             const savedCategory = await newCategory.save();
-            if (!savedCategory) {
-                const error = new Error('Server Side error');
-                error.statusCode = 500;
-                error.message = 'Cannot save new food Category to db'
-                throw error 
-            }
+            if (!savedCategory) return(new AppError('Unable to save new food category to db', 500));
         }
-        try {
-            const subFood = await SubFood.findOne({ where: { food_name: req.body.food_name}});
-            if (subFood) {
-                const error = new Error('Sub Food name already exist');
-                error.statusCode = 422;
-                error.message = 'Food name already exist in the main subFood'
-                throw error 
+    
+        const subFood = await SubFood.findOne({ where: { food_name: req.body.food_name.toLowerCase()}});
+        if (subFood) return next(new AppError('Sub food name already exist', 422));
+      
+        const newSubFood = await SubFood.create({
+            food_name: req.body.food_name.toLowerCase(),
+            description: req.body.description.toLowerCase(),
+            price: req.body.price,
+            preparation_duration: req.body.preparation_duration.toLowerCase(),
+            calory_amount: req.body.calory_amount,
+            CategoryId: category.id,
+        });
+    
+        return res.status(201).json({
+            status: "success",
+            message: "New sub Food created",
+            data: {
+                newSubFood,
+                createdCategory: newCategory
             }
-            const newSubFood = await SubFood.create({
-                food_name: req.body.food_name,
-                rating: req.body.rating,
-                description: req.body.description,
-                price: req.body.price,
-                preparation_time: req.body.preparation_time,
-                calory_amount: req.body.calory_amount,
-                CategoryId: category.id,
-            });
-            const savedSubFood = await newSubFood.save();
-            if (!savedSubFood) {
-                const error = new Error('Server Side error');
-                error.statusCode = 500;
-                error.message = 'Cannot save new sub food to db'
-                throw error 
-            }
-            return res.status(201).json({
-                status: "Successful",
-                message: "Created a new sub Food",
-                data: {
-                    newSubFood,
-                    createdCategory: newCategory
-                }
-            });
+        });
 
-        } catch(error) {
-            if (!error.statusCode) {
-                error.statusCode = 500;
-            }
-            next(error);
-        }
+        
     } catch(error) {
-        if (!error.statusCode) {
-            error.statusCode = 500;
-        }
         next(error);
     }
 }
 
 exports.updateSubFood= async (req, res, next) => {
+    const reqObject = req.body;
     try {
-        const category = await SubFood.findOne({ where: { id: req.params.id}});
-        if (!category) {
-            const error = new Error('Not found!');
-            error.statusCode = 422;
-            error.message = 'Food Category could not be found'
-            throw error 
+        const subFood = await SubFood.findOne({ where: { id: req.params?.id}});
+        if (!subFood) return next(new AppError('Sub Food could not be found', 422))
+        
+        for (const field in reqObject) {
+            if (typeof reqObject[`${field}`] === 'string' || reqObject[`${field}`] instanceof String) {
+                subFood[field] = reqObject[`${field}`].toLowerCase()
+            } else {
+                subFood[field] = reqObject[`${field}`];
+            }
         }
-        category.food_name = req.body.food_name;
-        category.food_class = req.body.food_class
-        const updatedCategory = await category.save();
-        if (!updatedCategory) {
-            const error = new Error('Server Side error');
-            error.statusCode = 500;
-            error.message = 'Cannot update the food Category in the db'
-            throw error 
-        }
+
+        const updatedSubFood = await subFood.save();
+        if (!updatedSubFood) return next(new AppError('Unable to update the sub food', 500))
+
         return res.status(201).json({
-            status: "Successful",
+            status: "success",
             message: "Updated an existing Food Category",
-            data: updatedCategory
+            data: { updatedSubFood }
         });
     } catch(error) {
         console.log(error);

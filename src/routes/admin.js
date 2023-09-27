@@ -13,13 +13,13 @@ const router = express.Router();
 
 router.get('/category', foodCategoryHandler.getFoodCategory);
 
-router.post('/category/add-category', foodCategoryHandler.createFoodCategory);
+router.post('/category/add', foodCategoryHandler.createFoodCategory);
 
-router.post('/category/add-image/:categoryId', upload.single('image'), foodCategoryHandler.addFoodCategoryImage);
+router.patch('/category/add-image/:categoryId', upload.single('image'), foodCategoryHandler.addFoodCategoryImage);
 
-router.put('/category/update-category/:categoryId', foodCategoryHandler.updateFoodCategory);
+router.put('/category/update/:categoryId', foodCategoryHandler.updateFoodCategory);
 
-router.delete('/category/delete-category/:categoryId', foodCategoryHandler.deleteFoodCategory)
+router.delete('/category/delete/:categoryId', foodCategoryHandler.deleteFoodCategory)
 
 router.delete('/category/delete-image/:categoryId', foodCategoryHandler.delFoodCategoryImage)
 
@@ -29,13 +29,13 @@ router.delete('/category/delete-image/:categoryId', foodCategoryHandler.delFoodC
  */
 router.get('/sub-food', subFoodHandler.getSubFood);
 
-router.post('/sub-food/add-sub', subFoodHandler.createSubFood);
+router.post('/sub-food/add', subFoodHandler.createSubFood);
 
-router.post('/sub-food/add-image/:id', upload.single('image'), subFoodHandler.addSubFoodImage);
+router.patch('/sub-food/add-image/:id', upload.single('image'), subFoodHandler.addSubFoodImage);
 
-router.patch('/sub-food/delete-image/:publicId', subFoodHandler.deleteSubFoodImage)
+router.delete('/sub-food/delete-image/:publicId', subFoodHandler.deleteSubFoodImage)
 
-// router.put('/sub-food/update-sub/:id', subFoodHandler.updateFoodCategory);
+router.put('/sub-food/update/:id', subFoodHandler.updateSubFood);
 
 // router.delete('/sub-food/delete-sub/:id', subFoodHandler.deleteFoodCategory)
 
