@@ -45,6 +45,8 @@ exports.addFoodCategoryImage = async (req, res, next) => {
         if (!category) return next(new AppError('Food Category not found', 404));
        
         const result = await cloudinary.uploader.upload(req.file.path);
+        if (!result) return next(new AppError('getaddrinfo EAI_AGAIN api.cloudinary.com', -3001));
+
         category.secure_image_url = result.secure_url;
         category.image_public_id = result.public_id;
 

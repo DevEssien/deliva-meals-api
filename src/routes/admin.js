@@ -37,6 +37,6 @@ router.delete('/sub-food/delete-image/:publicId', subFoodHandler.deleteSubFoodIm
 
 router.put('/sub-food/update/:id', subFoodHandler.updateSubFood);
 
-// router.delete('/sub-food/delete-sub/:id', subFoodHandler.deleteFoodCategory)
+router.delete('/sub-food/delete/:id', subFoodHandler.deleteSubFood)
 
 module.exports = router;

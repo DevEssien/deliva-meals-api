@@ -2,6 +2,7 @@ const AppError = require('../error/error');
 const FoodCategory = require('../../models/food-category');
 const SubFood = require('../../models/sub-food');
 const cloudinary = require('../../utils/cloudinary');
+const { clearImage } = require('../../utils/helperFunctions')
 
 exports.getSubFood = async (req, res, next) => {
     try {
@@ -88,44 +89,30 @@ exports.updateSubFood= async (req, res, next) => {
 }
 
 exports.addSubFoodImage = async (req, res, next) => {
-    if (!req.file) {
-        const error = new Error('Invalid Input!');
-        error.statusCode = 422;
-        error.message = 'No image file uploaded'
-        throw error;
-    }  
+    if (!req.file) return next(new AppError('No image file uploaded', 422)); 
+    
     try {
         const subFood = await SubFood.findOne({ where: { id: req.params.id}});
-        if (!subFood) {
-            const error = new Error('Not Found!');
-            error.statusCode = 404;
-            error.message = 'Sub Food not found'
-            throw error;
-        }
+        if (!subFood) return next(new AppError('sub food category not found', 404));
+
         const result = await cloudinary.uploader.upload(req.file.path);
-        if (!result) {
-            const error = new Error('EAI_AGAIN');
-            error.statusCode = -3001;
-            error.message = 'getaddrinfo EAI_AGAIN api.cloudinary.com'
-            throw error;
-        }
-        subFood.secure_image_url = result.secure_url
-        subFood.image_public_id = result.public_id
+
+        if (!result) return next(new AppError('getaddrinfo EAI_AGAIN api.cloudinary.com', -3001));
+
+        subFood.secure_image_url = result.secure_url;
+        subFood.image_public_id = result.public_id;
+
+        clearImage(req.file.filename);  
 
         const savedSubFood = await subFood.save();
-        if (!savedSubFood) {
-            const error = new Error('Server side error!');
-            error.statusCode = 500;
-            error.message = 'Something went wrong'
-            throw error;
-        }
+        if (!savedSubFood) return next(new AppError('server side error', 500)) 
+       
         return res.status(201).json({
-            subFood
+            status: 'success',
+            message: 'sub food image uploaded to cloudinary',
+            data: { subFood }
         });
     } catch(error) {
-        if (!error.statusCode) {
-            error.statusCode = 500;
-        }
         next(error);
     }
 
@@ -134,25 +121,17 @@ exports.addSubFoodImage = async (req, res, next) => {
 exports.deleteSubFoodImage = async (req, res, next) => {
     try {
         const subFood = await SubFood.findOne({ where: { image_public_id: req.params.publicId}});
-        if (!subFood) {
-            const error = new Error('Not Found!');
-            error.statusCode = 404;
-            error.message = 'No subfood found with the public id'
-            throw error;
-        }
+        if (!subFood) return next(new AppError('No subfood found with the public id', 404));
+      
         await cloudinary.uploader.destroy(subFood.image_public_id, async (err, result) => {
             if (!err) {
+
                 subFood.secure_image_url = '';
                 subFood.image_public_id = '';
-                const savedSubFood = await subFood.save();
-                if (!savedSubFood) {
-                    const error = new Error('Server side error!');
-                    error.statusCode = 500;
-                    error.message = 'Something went wrong'
-                    throw error;
-                }
-                res.status(200).json({
-                    status: 'Successful',
+                await subFood.save();
+               
+                return res.status(200).json({
+                    status: 'success',
                     message: 'Deleted image from cloudinary',
                     data: {
                         result: await result,
@@ -160,41 +139,45 @@ exports.deleteSubFoodImage = async (req, res, next) => {
                     }
                 });
             }
-            const error = new Error('Network error');
-            error.statusCode = 500;
-            error.message = 'Could not delete image from cloudinary due to poor network';
-            throw error;
+            return next(new AppError('Could not delete image from cloudinary due to poor network', 404));
         });
     } catch(error) {
-        if (!error.statusCode) {
-            error.statusCode = 500;
-        }
         next(error);
     }
 }
 
 exports.deleteSubFood= async (req, res, next) => {
     try {
-        const deletedCategory = await SubFood.destroy({ where: { id: req.params.id}});
-        console.log('delete', deletedCategory)
-        if (!deletedCategory) {
-            const error = new Error('Server side error!');
-            error.statusCode = 500;
-            error.message = 'Food Category could not be deleted due to unmatched id'
-            throw error 
-        }
-        return res.status(201).json({
-            status: "Successful",
-            message: "deleted an existing Food Category",
+        const subFood = await SubFood.findOne({ where: { id: req.params?.id} });
+        if (!subFood) return next(new AppError('Sub Food could not be found', 404));
+
+        const deletedSubFood = await subFood.destroy({ where: { id: req.params?.id}});
+        if (!deletedSubFood) return next(new AppError('Sub Food could not be deleted', 500))
+
+        if (!subFood.image_public_id) return res.status(200).json({
+            status: "success",
+            message: "deleted an existing sub Food Category",
             data: {
-                items_deleted: deletedCategory
-            }
+                items_deleted: deletedSubFood,
+            },
+        }); 
+
+        await cloudinary.uploader.destroy(subFood.image_public_id, async (error, result) => {
+            if (error) return next(new AppError('Poor network', 400)); 
+
+            return res.status(200).json({
+                status: "success",
+                message: "deleted an existing Sub Food Category and image file from cloudinary",
+                data: {
+                    items_deleted: deletedSubFood,
+                    cloudinaryResult: {
+                        result: await result
+                    },
+                },
+            });
         });
     } catch(error) {
-        console.log(error);
-        if (!error.statusCode) {
-            error.statusCode = 500
-        }
         next(error);
     }
 }
+        
