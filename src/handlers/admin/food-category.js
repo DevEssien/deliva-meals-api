@@ -1,5 +1,6 @@
 const FoodCategory = require('../../models/food-category'); 
 const AppError = require('../error/error');
+const { clearImage } = require('../../utils/helperFunctions')
 
 const cloudinary = require('../../utils/cloudinary')
 
@@ -7,8 +8,8 @@ const cloudinary = require('../../utils/cloudinary')
 exports.getFoodCategory = async (req, res, next) => {
     try {
         const categories = await FoodCategory.findAll();
-        if (!categories) return next(new AppError('No Category exist', 404));
-        
+        if (!categories) return next(new AppError('No Food Category exist', 404));
+
         return res.status(200).json({
             status: 'success',
             message: 'getting food category',
@@ -22,119 +23,115 @@ exports.getFoodCategory = async (req, res, next) => {
 
 
 exports.createFoodCategory = async (req, res, next) => {
-    const category = await FoodCategory.findOne({ where: { food_name: req.body.food_name}});
-    if (category) {
-        const error = new Error('Food name already exist');
-        error.statusCode = 422;
-        error.message = 'Food name already exist in the main Category'
-        throw error 
-    }
+    const category = await FoodCategory.findOne({ where: { food_name: req.body.food_name.toLowerCase() }});
+    if (category) return next(new AppError('Food Caterory already exist', 422)); 
+
     const newCategory = await FoodCategory.create({
-        food_name: req.body.food_name,
-        food_class: req.body.food_class
+        food_name: req.body.food_name.toLowerCase(),
+        food_class: req.body.food_class.toLowerCase()
     });
-    const savedCategory = await newCategory.save();
-    if (!savedCategory) {
-        const error = new Error('Server Side error');
-        error.statusCode = 500;
-        error.message = 'Cannot save new food Category to db'
-        throw error 
-    }
+  
     return res.status(201).json({
-        status: "Successful",
+        status: "success",
         message: "Created a new Food Category",
-        data: newCategory
+        data: { newCategory }
     });
 }
 
 exports.addFoodCategoryImage = async (req, res, next) => {
-    if (!req.file) {
-        const error = new Error('Invalid Input!');
-        error.statusCode = 422;
-        error.message = 'No image file uploaded'
-        throw error;
-    }  
+    if (!req.file) return next(new AppError('No image file uploaded', 422)); 
     try {
-        const category = await FoodCategory.findOne({ where: { id: req.params.id}});
-        if (!category) {
-            const error = new Error('Not Found!');
-            error.statusCode = 404;
-            error.message = 'Category not found'
-            throw error;
-        }
+        const category = await FoodCategory.findOne({ where: { id: req.params?.categoryId}});
+        if (!category) return next(new AppError('Food Category not found', 404));
+       
         const result = await cloudinary.uploader.upload(req.file.path);
-        category.secure_image_url = result.secure_url
-        category.image_public_id = result.public_id
+        category.secure_image_url = result.secure_url;
+        category.image_public_id = result.public_id;
+
+        clearImage(req.file.filename);  
+
         const savedCategory = await category.save();
-        if (!savedCategory) {
-            const error = new Error('Server side error!');
-            error.statusCode = 500;
-            error.message = 'Something went wrong'
-            throw error;
-        }
+        if (!savedCategory) return next(new AppError('Unable to save Food Category to db', 500));
+      
         return res.status(201).json({
-            category
+            status: 'success',
+            message: 'Food Category Image uploaded',
+            data: { category }
         });
     } catch(error) {
-        if (!error.statusCode) {
-            error.statusCode = 500;
-        }
         next(error);
     }
 
 }
 
-exports.updateFoodCategory = async (req, res, next) => {
+exports.delFoodCategoryImage = async (req, res, next) => {
     try {
-        const category = await FoodCategory.findOne({ where: { id: req.params.id}});
-        if (!category) {
-            const error = new Error('Not found!');
-            error.statusCode = 422;
-            error.message = 'Food Category could not be found'
-            throw error 
+        const category = await FoodCategory.findOne({ where: { id: req.params?.categoryId}});
+        if (!category) return next(new AppError('Food Category not found', 404));
+
+        if (!category.image_public_id) return next(new AppError('Category has no image public id', 404))
+       
+        await cloudinary.uploader.destroy(category.image_public_id, async (error, result) => {
+            if (error) return next(new AppError('Poor network', 400)); 
+
+            category.image_public_id = ''
+            category.secure_image_url = ''
+            await category.save()
+
+            return res.status(200).json({
+                status: "success",
+                message: "deleted image file from cloudinary",
+                data: {
+                    cloudinaryResult: {
+                        result: await result
+                    },
+                },
+            });
+        });
+    } catch (error) {
+        next(error)
+    }
+} 
+
+exports.updateFoodCategory = async (req, res, next) => {
+    const reqObject = req.body;
+    try {
+        const category = await FoodCategory.findOne({ where: { id: req.params?.categoryId}});
+        if (!category) return next(new AppError('Food Category could not be found', 404));
+
+        for (const field in reqObject) {
+            category[field] = reqObject[`${field}`]
         }
-        category.food_name = req.body.food_name;
-        category.food_class = req.body.food_class
         const updatedCategory = await category.save();
-        if (!updatedCategory) {
-            const error = new Error('Server Side error');
-            error.statusCode = 500;
-            error.message = 'Cannot update the food Category in the db'
-            throw error 
-        }
+
+        if (!updatedCategory) return next(new AppError('Unable to update the food Category in the db', 500))
+    
         return res.status(201).json({
-            status: "Successful",
+            status: "success",
             message: "Updated an existing Food Category",
-            data: updatedCategory
+            data: { updatedCategory }
         });
     } catch(error) {
-        console.log(error);
         next(error)
     }
 }
 
 exports.deleteFoodCategory = async (req, res, next) => {
     try {
-        const deletedCategory = await FoodCategory.destroy({ where: { id: req.params.id}});
-        console.log('delete', deletedCategory)
-        if (!deletedCategory) {
-            const error = new Error('Server side error!');
-            error.statusCode = 500;
-            error.message = 'Food Category could not be deleted due to unmatched id'
-            throw error 
-        }
+        const category = await FoodCategory.findOne({ where: { id: req.params?.categoryId} });
+        if (!category) return next(new AppError('Food Category could not be found', 404));
+
+        const deletedCategory = await FoodCategory.destroy({ where: { id: category?.id }});
+        if (!deletedCategory) return next(new AppError('Food Category could not be deleted due to unmatched id', 401))
+        
         return res.status(201).json({
-            status: "Successful",
+            status: "success",
             message: "deleted an existing Food Category",
             data: {
                 items_deleted: deletedCategory
             }
         });
     } catch(error) {
-        console.log(error);
-        if (!error.statusCode) {
-            error.statusCode = 500
-        }
         next(error);
     }
 }

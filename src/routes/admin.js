@@ -17,9 +17,11 @@ router.post('/category/add-category', foodCategoryHandler.createFoodCategory);
 
 router.post('/category/add-image/:categoryId', upload.single('image'), foodCategoryHandler.addFoodCategoryImage);
 
-router.put('/category/update-category/:id', foodCategoryHandler.updateFoodCategory);
+router.put('/category/update-category/:categoryId', foodCategoryHandler.updateFoodCategory);
 
-router.delete('/category/delete-category/:id', foodCategoryHandler.deleteFoodCategory)
+router.delete('/category/delete-category/:categoryId', foodCategoryHandler.deleteFoodCategory)
+
+router.delete('/category/delete-image/:categoryId', foodCategoryHandler.delFoodCategoryImage)
 
 
 /**
