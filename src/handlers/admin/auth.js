@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 
 const  { createJWT } = require('../../modules/auth');
-const Admin = require('../../models/admin');
+const Admin = require('../../models/Admin');
 const AppError = require('../error/error');
 
 exports.createAdmin = async (req, res, next) => {
@@ -15,7 +15,7 @@ exports.createAdmin = async (req, res, next) => {
         }
         const newAdmin = new Admin({
             email: req.body.email.toLowerCase(),
-            password: await bcrypt.hash(req.body.password, 12)
+            password: await bcrypt.hash(req.body?.password, process.env.SALT_ROUND)
         });
         const savedAdmin = await newAdmin.save();
         if (!savedAdmin) {

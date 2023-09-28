@@ -1,13 +1,13 @@
 const AppError = require('../error/error');
-const FoodCategory = require('../../models/food-category');
-const SubFood = require('../../models/sub-food');
+const FoodCategory = require('../../models/Food-Category');
+const SubFood = require('../../models/Sub-Food');
 const cloudinary = require('../../utils/cloudinary');
 const { clearImage } = require('../../utils/helperFunctions')
 
 exports.getSubFood = async (req, res, next) => {
     try {
         const subFoods = await SubFood.findAll();
-        if (!subFoods) return next(new AppError('No sub food found', 404));
+        if (subFoods.length < 1) return next(new AppError('No sub food found', 404));
 
         return res.status(200).json({
             status: 'success',
@@ -15,6 +15,21 @@ exports.getSubFood = async (req, res, next) => {
             data: { subFoods }
         });
         
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.getSubByFoodCategory = async (req, res, next) => {
+    try {
+        const subFoods = await SubFood.findAll({ where: { CategoryId: req.params?.categoryId}});
+        if (subFoods.length < 1) return next(new AppError('No sub food found with food category id', 404));
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'getting all sub foods under the food category',
+            data: { subFoods }
+        });
     } catch (error) {
         next(error)
     }

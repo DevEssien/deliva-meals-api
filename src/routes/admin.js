@@ -29,6 +29,8 @@ router.delete('/category/delete-image/:categoryId', foodCategoryHandler.delFoodC
  */
 router.get('/sub-food', subFoodHandler.getSubFood);
 
+router.get('/sub-by-category/:categoryId', subFoodHandler.getSubByFoodCategory)
+
 router.post('/sub-food/add', subFoodHandler.createSubFood);
 
 router.patch('/sub-food/add-image/:id', upload.single('image'), subFoodHandler.addSubFoodImage);

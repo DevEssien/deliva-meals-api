@@ -1,4 +1,4 @@
-const FoodCategory = require('../../models/food-category'); 
+const FoodCategory = require('../../models/Food-Category'); 
 const AppError = require('../error/error');
 const { clearImage } = require('../../utils/helperFunctions')
 
